@@ -4,8 +4,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 
+medical_charges_url = 'https://raw.githubusercontent.com/JovianML/opendatasets/master/data/medical-charges.csv'
+from urllib.request import urlretrieve
+urlretrieve(medical_charges_url, 'medical.csv')
 medical_df = pd.read_csv('medical.csv')
-
 non_smoker_df=medical_df[medical_df.smoker=='no']
 
 def estimate(age,bmi,children,u,v,w,b):
