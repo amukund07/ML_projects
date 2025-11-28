@@ -108,3 +108,14 @@ predictions_train = model.predict(inputs_train)
 loss = rmse(targets_train, predictions_train)
 print('Training Loss:', loss)
 
+# Graph
+plt.figure(figsize=(10,6))
+plt.scatter(targets_test, predictions_test, alpha=0.5)
+plt.xlabel("Actual Charges")
+plt.ylabel("Predicted Charges")
+plt.title("Actual vs Predicted Medical Charges (Test Set)")
+plt.plot([targets_test.min(), targets_test.max()],
+         [targets_test.min(), targets_test.max()])
+plt.legend(['Actual', 'Predicted'])
+plt.show()
+
