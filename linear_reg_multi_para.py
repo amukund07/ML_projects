@@ -1,55 +1,28 @@
-# Import to read dataset
+# Age,bmi,children
 import numpy as np
 import pandas as pd
-# Import to make graphs
 import matplotlib.pyplot as plt
-# Import for model traning
-from sklearn.linear_model import LinearRegression 
-# Import for Standardization of the weights
-from sklearn import preprocessing   
+from sklearn.linear_model import LinearRegression
+
 medical_charges_url = 'https://raw.githubusercontent.com/JovianML/opendatasets/master/data/medical-charges.csv'
 from urllib.request import urlretrieve
 urlretrieve(medical_charges_url, 'medical.csv')
-# Import data set
-medical_df= pd.read_csv("medical.csv")
+medical_df = pd.read_csv('medical.csv')
+non_smoker_df=medical_df[medical_df.smoker=='no']
 
-# Sorting data using 1 and 0
-smoker_codes = {'no': 0, 'yes': 1}
-medical_df['smoker_code'] = medical_df.smoker.map(smoker_codes)
+def estimate(age,bmi,children,u,v,w,b):
+    return age*u+bmi*v+children*w+b
 
-sex_codes={"male":0,"female":1}
-medical_df["sex_code"]= medical_df.sex.map(sex_codes)
+def rems(target,prediction):
+    return np.sqrt(np.mean(np.square(target-prediction)))
 
-# One hot encoding 
-enc=preprocessing.OneHotEncoder()
-enc.fit(medical_df[["region"]])
-one_hot = enc.transform(medical_df[['region']]).toarray()
-medical_df[['northeast', 'northwest', 'southeast', 'southwest']] = one_hot
+ages=non_smoker_df.age
+bmis=non_smoker_df.bmi
+childs=non_smoker_df.children
 
-# print(medical_df.head(5))
-# print(medical_df.describe())
-# age,bmi,children,sex_code,smoker_code, northwest, southeast, southwest
-# In this we only take one in binary encoding like either male or female coz m+f=1
-# In this we only take three in one hot encoding coz ne+nw+se+sf=1
-
-def estimates(age,bmi,children,sex_code,smoker_code, northwest, southeast, southwest,p,q,r,s,t,u,v,w,b):
-    return age*p+bmi*q+children*r+sex_code*s+smoker_code*t+northwest*u+southeast*v+southwest*w+b
-
-def rmse(targets,predictions):
-    return  np.sqrt(np.mean(np.square(targets-predictions)))
-
-ages=medical_df.age
-bmis=medical_df.bmi
-childrens=medical_df.children
-sex_column = medical_df.sex_code
-smoker_column = medical_df.smoker_code
-northwests = medical_df.northwest
-southeasts = medical_df.southeast
-southwests = medical_df.southwest
-
-def try_para(p,q,r,s,t,u,v,w,b):
-    targets=medical_df.charges
-    predictions= estimates(ages,bmis,childrens,sex_column,smoker_column, northwests, southeasts, southwests,p,q,r,s,t,u,v,w,b)
+def try_para(u,v,w,b):
+    targets=non_smoker_df.charges
+    predictions= estimate(ages,bmis,childs,u,v,w,b)
     plt.figure(figsize=(10,6))
     plt.scatter(ages, targets, alpha=0.5)
     plt.scatter(ages, predictions, alpha=0.5)
@@ -57,31 +30,15 @@ def try_para(p,q,r,s,t,u,v,w,b):
     plt.ylabel('Charges')
     plt.legend(['Actual', 'Predicted'])
 
-    loss=rmse(targets,predictions)
+    loss=rems(targets,predictions)
     print("loss", loss)
 
-# training model
+
 model= LinearRegression()
-inputs = medical_df[['age',
-                     'bmi',
-                     'children',
-                     'sex_code',
-                     'smoker_code',
-                     'northwest',
-                     'southeast',
-                     'southwest']]
+inputs=non_smoker_df[['age','bmi','children']]
+targets=non_smoker_df.charges
+model.fit(inputs, targets)
 
-targets=medical_df.charges
-model.fit(inputs,targets)
 
-try_para(model.coef_[0],model.coef_[1],model.coef_[2],model.coef_[3],model.coef_[4],model.coef_[5],model.coef_[6],model.coef_[7],model.intercept_)
-
-Getting data on weights 
-input_cols = inputs.columns 
-weights_df = pd.DataFrame({
-    'feature': np.append(input_cols, "intercept"),
-    'weight': np.append(model.coef_, model.intercept_)
-})
-print(weights_df)
-
+try_para(model.coef_[0],model.coef_[1],model.coef_[2],model.intercept_)
 plt.show()
