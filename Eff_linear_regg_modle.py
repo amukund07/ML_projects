@@ -1,11 +1,17 @@
 # Multvariable efficent LRM
 
+# Import to read dataset
 import numpy as np
 import pandas as pd
+# Import to make graphs
 import matplotlib.pyplot as plt
+# Import for model traning
 from sklearn.linear_model import LinearRegression 
-from sklearn import preprocessing
-
+# Import for Standardization of the weights
+from sklearn import preprocessing   
+medical_charges_url = 'https://raw.githubusercontent.com/JovianML/opendatasets/master/data/medical-charges.csv'
+from urllib.request import urlretrieve
+urlretrieve(medical_charges_url, 'medical.csv')
 # Import data set
 medical_df= pd.read_csv("medical.csv")
 
@@ -22,8 +28,8 @@ enc.fit(medical_df[["region"]])
 one_hot = enc.transform(medical_df[['region']]).toarray()
 medical_df[['northeast', 'northwest', 'southeast', 'southwest']] = one_hot
 
-print(medical_df.head(5))
-print(medical_df.describe())
+# print(medical_df.head(5))
+# print(medical_df.describe())
 # age,bmi,children,sex_code,smoker_code, northwest, southeast, southwest
 # In this we only take one in binary encoding like either male or female coz m+f=1
 # In this we only take three in one hot encoding coz ne+nw+se+sf=1
@@ -31,7 +37,7 @@ print(medical_df.describe())
 def estimates(age,bmi,children,sex_code,smoker_code, northwest, southeast, southwest,p,q,r,s,t,u,v,w,b):
     return age*p+bmi*q+children*r+sex_code*s+smoker_code*t+northwest*u+southeast*v+southwest*w+b
 
-def rems(targets,predictions):
+def rmse(targets,predictions):
     return  np.sqrt(np.mean(np.square(targets-predictions)))
 
 ages=medical_df.age
@@ -53,7 +59,7 @@ def try_para(p,q,r,s,t,u,v,w,b):
     plt.ylabel('Charges')
     plt.legend(['Actual', 'Predicted'])
 
-    loss=rems(targets,predictions)
+    loss=rmse(targets,predictions)
     print("loss", loss)
 
 # training model
@@ -72,7 +78,7 @@ model.fit(inputs,targets)
 
 try_para(model.coef_[0],model.coef_[1],model.coef_[2],model.coef_[3],model.coef_[4],model.coef_[5],model.coef_[6],model.coef_[7],model.intercept_)
 
-# Getting data on weights 
+Getting data on weights 
 input_cols = inputs.columns 
 weights_df = pd.DataFrame({
     'feature': np.append(input_cols, "intercept"),
@@ -81,4 +87,3 @@ weights_df = pd.DataFrame({
 print(weights_df)
 
 plt.show()
-
